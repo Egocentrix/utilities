@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 
 ############## Help function #############
 display_help() {
-    echo "Usage: $(basename $0) [options...] filenames" 
+    echo "Usage: $(basename $0) [options...] { filenames, --picker }" 
     echo
     echo "Ingest raw files from a memory card and rename them according to"
     echo "the NIDF standard, for example 'RPN_Party_20230815_1234.NEF'"
@@ -10,6 +10,8 @@ display_help() {
     echo "Parameters:"
     echo "   filenames              List of image files to copy. Any exiftool"
     echo "                          compatible file type will work (NEF/CR2/...) "
+    echo "   --picker               Alternatively, use file picker dialog"
+
     echo 
     echo "Available options:"
     echo "   -a, --author           Author initials, defaults to 'RPN'."
@@ -56,6 +58,10 @@ while [[ $# -gt 0 ]]; do
       LIST_FILES=1
       shift
       ;;
+    --picker)
+      USE_PICKER=1
+      shift
+      ;;
     -*|--*)
       echo "Unknown option $1"
       exit 1
@@ -68,6 +74,10 @@ while [[ $# -gt 0 ]]; do
 done
 
 AUTHOR=${AUTHOR:-'RPN'} # Defaults to me :)
+
+if [[ $USE_PICKER -eq 1 ]]; then
+  FILES=$(zenity --file-selection --multiple --separator=' ' 2> /dev/null) # suppress errors
+fi
 
 ############## Confirm settings #############
 
@@ -94,7 +104,7 @@ if [[ $ANSWER == [yY]* ]]; then
     echo "Copying..."
 else
     echo "Exiting"
-    exit -1
+    exit 1
 fi
 
 ############## Execute command #############
